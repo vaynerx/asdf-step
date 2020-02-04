@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+
+set -e
+set -o pipefail
+
+[ -n "$ASDF_INSTALL_VERSION" ] || (>&2 echo 'Missing ASDF_INSTALL_VERSION' && exit 1)
+[ -n "$ASDF_INSTALL_PATH" ] || (>&2 echo 'Missing ASDF_INSTALL_PATH' && exit 1)
+
+get_platform () {
+	local platform="$(uname | tr '[:upper:]' '[:lower:]')"
+
+	case "$platform" in
+		linux|darwin|freebsd)
+			echo "Platform '${platform}' supported!" >&2
+			;;
+		*)
+			echo "Platform '${platform}' not supported!" >&2
+			exit 1
+			;;
+	esac
+
+	echo -n $platform
+}
+
+get_arch () {
+	local arch=""
+
+	case "$(uname -m)" in
+		x86_64|amd64) arch="x86_64"; ;;
+		i686|i386) arch="386"; ;;
+		armv6l|armv7l) arch="armv6l"; ;;
+		aarch64) arch="arm64"; ;;
+		ppc64le) arch="ppc64le"; ;;
+		*)
+			echo "Arch '$(uname -m)' not supported!" >&2
+			exit 1
+			;;
+	esac
+
+	echo -n $arch
+}
+
+get_download_url() {
+  	local version=$1
+	local platform=$2
+	local arch=$3
+  	echo "https://github.com/uber/prototool/releases/download/v${version}/prototool-${platform}-${arch}.tar.gz"
+}
+
+my_mktemp () {
+	local tempdir=""
+	if [ "linux" = "$1" ] ; then
+		tempdir=$(mktemp -d asdf-golang.XXXX)
+	else
+		tempdir=$(mktemp -dt asdf-golang.XXXX)
+	fi
+	echo -n $tempdir
+}
+
+install_prototool() {
+	local install_type=$1
+  	local version=$2
+  	local install_path=$3
+  	local platform=$(get_platform)
+	local arch=$(get_arch)
+	local tempdir=$(my_mktemp $platform)
+  	local download_url="$(get_download_url $version $platform $arch)"
+
+	local bin_install_path="$install_path/bin"
+
+	mkdir -p $bin_install_path
+	curl -sSL $download_url -o "${tempdir}/archive.tar.gz"
+	tar -C "$tempdir" -zxf "${tempdir}/archive.tar.gz"
+
+	ls ${tempdir}/prototool/bin
+	ls ${tempdir}
+
+	mv ${tempdir}/prototool/bin/prototool ${bin_install_path}
+	chmod +x ${bin_install_path}/prototool
+
+	rm -rf $tempdir 
+}
+
+install_prototool $ASDF_INSTALL_TYPE $ASDF_INSTALL_VERSION $ASDF_INSTALL_PATH
