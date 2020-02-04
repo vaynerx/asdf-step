@@ -26,7 +26,7 @@ get_arch () {
 	local arch=""
 
 	case "$(uname -m)" in
-		x86_64|amd64) arch="x86_64"; ;;
+		x86_64|amd64) arch="amd64"; ;;
 		i686|i386) arch="386"; ;;
 		armv6l|armv7l) arch="armv6l"; ;;
 		aarch64) arch="arm64"; ;;
@@ -44,7 +44,7 @@ get_download_url() {
   	local version=$1
 	local platform=$2
 	local arch=$3
-  	echo "https://github.com/uber/prototool/releases/download/v${version}/prototool-${platform}-${arch}.tar.gz"
+	echo "https://github.com/smallstep/cli/releases/download/v${version}/step_${version}_${platform}_${arch}.tar.gz"
 }
 
 my_mktemp () {
