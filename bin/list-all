@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 
-releases_path="https://github.com/smallstep/cli/tags"
+releases_path="https://api.github.com/repos/smallstep/cli/tags"
 
 cmd="curl -s"
-
 # add auth token in CI environment
 if [ -n "$GITHUB_API_TOKEN" ]; then
  cmd="$cmd -H 'Authorization: token $GITHUB_API_TOKEN'"
